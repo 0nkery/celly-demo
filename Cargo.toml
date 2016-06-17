@@ -1,0 +1,14 @@
+[package]
+name = "celly-demo"
+version = "0.1.0"
+authors = ["Dmitry Shlagoff <wessmoke@gmail.com>"]
+
+[dependencies]
+websocket = "0.17.1"
+
+celly = { git = "https://github.com/0nkery/celly.git" }
+iron = "0.3.0"
+logger = "0.0.3"
+
+serde = "0.7"
+serde_macros = "0.7"
