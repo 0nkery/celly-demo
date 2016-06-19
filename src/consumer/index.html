@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>celly demo</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js"></script>
+<script src="//cdn.jsdelivr.net/terra/latest/mainfile"></script>
+
+<script type="text/javascript">
+    var cells;
+
+    var i_to_char = {
+        0: "\u0302",
+        1: "\u0354",
+        2: "\u0350",
+        3: "\u032C"
+    };
+
+    var particle = "particle";
+    var background = [52, 152, 219];
+    var hppCa = {
+        type: particle,
+        colorFn: function () {
+            if (this.particles) {
+                if (this.type == 0) {
+                    return this.particles.some(function (el) { return el == true; }) 
+                        ? "236,240,241,1" : "127,140,141,1";
+                }
+                else {
+                    return "44,62,80,1";
+                }
+            }
+        },
+        process: function (_, x, y) {
+            var cell = cells.find(function (el) { return el[1][0] == x && el[1][1] == y; });
+
+            this.particles = cell[0];
+            this.type = cell[2][0];
+
+            if (this.type == 0) {
+                this.character = this.particles.map(function (el, i) {
+                    if (el) return i_to_char[i];
+                    else return undefined;
+                }).join('');
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+    };
+    terra.registerCA(hppCa);
+
+    var t = new terra.Terrarium(120, 50, {
+        id: "celly_demo",
+        cellSize: 15,
+        background: background
+    });
+    t.grid = t.makeGrid(particle);
+
+    var sock = new WebSocket("ws://localhost:3000/");
+    sock.binaryType = "arraybuffer";
+
+    sock.onmessage = function (e) {
+        var rawBinary = new Uint8Array(e.data);
+        var data = msgpack.decode(rawBinary);
+
+        cells = data;
+
+        t.animate(1);
+    };
+</script>
+</body>
+</html>

@@ -17,7 +17,7 @@ impl Default for Stage {
 
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-enum Direction {
+pub enum Direction {
     Up,
     Left,
     Right,
@@ -48,12 +48,43 @@ impl Direction {
     }
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+pub enum CellType {
+    Water,
+    Wall
+}
+
+
+impl Default for CellType {
+    fn default() -> Self {
+        CellType::Water
+    }
+}
+
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct HPP {
     particles: [bool; 4],
+    #[serde(skip_serializing)]
     stage: Stage,
-    coord: (i32, i32)
+    coord: (i32, i32),
+    _type: CellType,
+    #[serde(skip_serializing)]
+    temp_particles: [bool; 4]
+}
+
+
+impl HPP {
+
+    pub fn new(particles: [bool; 4], coord: (i32, i32), _type: CellType) -> Self {
+        HPP {
+            stage: Stage::Collision,
+            particles: particles,
+            coord: coord,
+            _type: _type,
+            temp_particles: particles
+        }
+    }
 }
 
 
@@ -63,9 +94,18 @@ impl Cell for HPP {
     fn step<'a, I>(&'a self, neighbors: I) -> Self
             where I: Iterator<Item=Option<&'a Self>> {
 
-        match self.stage {
-            Stage::Collision => self.collision(neighbors),
-            Stage::Transport => self.transport(neighbors),
+        if let (119, _) = self.coord {
+            let mut new = self.clone();
+            new.particles = [false, false, false, false];
+            return new;
+        }
+
+        match self._type {
+            CellType::Wall => self.clone(),
+            CellType::Water => match self.stage {
+                Stage::Collision => self.collision(neighbors),
+                Stage::Transport => self.transport(neighbors),
+            }
         }
     }
 
@@ -89,11 +129,20 @@ impl Cell for HPP {
 
 impl HPP {
 
+    fn rebound(&self, d: &Direction) -> Option<(Direction, bool)> {
+        if self.particle(&d) {
+            let opposite = d.opposite();
+            return Some((opposite, true));
+        }
+        else { return None; }
+    }
+
     fn collision<'a, I>(&self, neighbors: I) -> Self
         where I: Iterator<Item=Option<&'a Self>> {
 
         let mut new = HPP {
             stage: Stage::Transport,
+            _type: self._type,
             ..Default::default()
         };
 
@@ -101,22 +150,32 @@ impl HPP {
 
             match neighbor {
 
+                Some(neighbor) if neighbor._type == CellType::Wall => {
+
+                    if let Some((dir, exists)) = self.rebound(&direction) {
+                        new.set_particle(&dir, exists);
+                    }
+                },
+
                 Some(neighbor) => {
+
                     let opposite = direction.opposite();
                     let head_on = self.particle(&direction) && neighbor.particle(&opposite);
 
                     if head_on {
-                        new.set_particle(&direction.perpendicular(), self.particle(&direction));
+                        new.set_particle(&direction.perpendicular(), true);
                     }
                     else {
                         let particle = new.particle(&direction) || self.particle(&direction);
                         new.set_particle(&direction, particle);
                     }
                 },
-                // Rebound
+
                 None => {
-                    let opposite = direction.opposite();
-                    new.set_particle(&opposite, self.particle(direction));
+
+                    if let Some((dir, exists)) = self.rebound(&direction) {
+                        new.set_particle(&dir, exists);
+                    }
                 }
             }
         }
@@ -129,21 +188,26 @@ impl HPP {
 
         let mut new = HPP {
             stage: Stage::Collision,
+            _type: self._type,
             ..Default::default()
         };
 
         for (neighbor, direction) in neighbors.zip(self.directions().iter()) {
 
             match neighbor {
+
                 Some(neighbor) => {
                     let opposite = direction.opposite();
-                    new.set_particle(
-                        &opposite,
-                        neighbor.particle(&opposite) || self.particle(&opposite)
-                    );
+
+                    if neighbor.particle(&opposite) {
+                        new.set_particle(&opposite, neighbor.particle(&opposite));
+                    }
                 },
-                None => {
-                    new.set_particle(&direction, self.particle(&direction))
+                None => { 
+
+                    if self.particle(&direction) {
+                        new.set_particle(&direction.opposite(), true);
+                    }
                 }
             }
         }
@@ -151,7 +215,7 @@ impl HPP {
         new
     }
 
-    fn particle(&self, direction: &Direction) -> bool {
+    pub fn particle(&self, direction: &Direction) -> bool {
 
         match *direction {
             Direction::Up => self.particles[0],
@@ -172,7 +236,7 @@ impl HPP {
     }
 
     #[inline]
-    fn directions(&self) -> [Direction; 4] {
+    pub fn directions(&self) -> [Direction; 4] {
         [Direction::Up, Direction::Left, Direction::Right, Direction::Down]
     }
 }
