@@ -5,7 +5,7 @@ use std::thread;
 use std::time::Duration;
 
 use celly::traits::Grid;
-use celly::traits::ReprConsumer;
+use celly::traits::Consumer;
 
 use ws::{ Message, Sender, WebSocket };
 
@@ -57,7 +57,7 @@ impl IronWebConsumer {
 }
 
 
-impl ReprConsumer for IronWebConsumer {
+impl Consumer for IronWebConsumer {
 
     fn consume<G: Grid>(&mut self, grid: &G) {
 
