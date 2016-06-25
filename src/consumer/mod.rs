@@ -5,12 +5,14 @@ use std::thread;
 use std::time::Duration;
 
 use celly::traits::Grid;
-use celly::traits::ReprConsumer;
+use celly::traits::Consumer;
 
 use ws::{ Message, Sender, WebSocket };
 
 use serde::Serialize;
 use rmp_serde::Serializer;
+
+use automaton::HPP;
 
 use self::http::http;
 
@@ -57,7 +59,9 @@ impl IronWebConsumer {
 }
 
 
-impl ReprConsumer for IronWebConsumer {
+impl Consumer for IronWebConsumer {
+
+    type Cell = HPP;
 
     fn consume<G: Grid>(&mut self, grid: &G) {
 
@@ -80,6 +84,6 @@ impl ReprConsumer for IronWebConsumer {
             }
         }
 
-        thread::sleep(Duration::from_millis(400));
+        thread::sleep(Duration::from_millis(200));
     }
 }
