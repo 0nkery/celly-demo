@@ -6,7 +6,7 @@ authors = ["Dmitry Shlagoff <wessmoke@gmail.com>"]
 [dependencies]
 ws = "0.5"
 
-celly = { git = "https://github.com/0nkery/celly" }
+celly = "0.5"
 iron = "0.3.0"
 logger = "0.0.3"
 

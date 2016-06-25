@@ -4,7 +4,6 @@ use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
 
-use celly::traits::Cell;
 use celly::traits::Consumer;
 use celly::traits::Grid;
 
