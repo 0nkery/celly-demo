@@ -4,8 +4,9 @@ use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
 
-use celly::traits::Grid;
+use celly::traits::Cell;
 use celly::traits::Consumer;
+use celly::traits::Grid;
 
 use ws::{ Message, Sender, WebSocket };
 
@@ -63,7 +64,7 @@ impl Consumer for IronWebConsumer {
 
     type Cell = HPP;
 
-    fn consume<G: Grid>(&mut self, grid: &G) {
+    fn consume<G: Grid<Cell=Self::Cell>>(&mut self, grid: &mut G) {
 
         let mut buf = Vec::new();
         let res = grid.cells().serialize(&mut Serializer::new(&mut buf));
