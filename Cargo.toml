@@ -14,5 +14,3 @@ serde = "0.7"
 serde_macros = "0.7"
 
 rmp-serde = "0.9"
-
-rand = "0.3"

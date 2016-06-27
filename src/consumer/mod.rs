@@ -84,6 +84,6 @@ impl Consumer for IronWebConsumer {
             }
         }
 
-        thread::sleep(Duration::from_millis(200));
+        thread::sleep(Duration::from_millis(400));
     }
 }

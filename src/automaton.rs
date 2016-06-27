@@ -94,6 +94,12 @@ impl Cell for HPP {
     fn step<'a, I>(&'a self, neighbors: I) -> Self
             where I: Iterator<Item=Option<&'a Self>> {
 
+        if let (0, _) = self.coord {
+            let mut new = self.clone();
+            new.particles = [false, false, true, true];
+            return new;
+        }
+
         if let (119, _) = self.coord {
             let mut new = self.clone();
             new.particles = [false, false, false, false];
@@ -160,7 +166,10 @@ impl HPP {
                 Some(neighbor) => {
 
                     let opposite = direction.opposite();
-                    let head_on = self.particle(&direction) && neighbor.particle(&opposite);
+                    let head_on = self.particle(&direction) &&
+                                  neighbor.particle(&opposite) &&
+                                  !self.particle(&direction.perpendicular()) &&
+                                  !neighbor.particle(&opposite.perpendicular());
 
                     if head_on {
                         new.set_particle(&direction.perpendicular(), true);
