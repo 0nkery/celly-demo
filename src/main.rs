@@ -4,7 +4,6 @@
 extern crate celly;
 
 extern crate iron;
-extern crate logger;
 
 extern crate ws;
 

@@ -1,7 +1,6 @@
 use iron::prelude::*;
 use iron::status;
 use iron::mime::Mime;
-use logger::Logger;
 
 
 pub fn http() {
@@ -13,12 +12,7 @@ pub fn http() {
         Ok(Response::with((content_type, status::Ok, INDEX_HTML)))
     }
 
-    let mut chain = Chain::new(index_handler);
-
-    let (logger_before, logger_after) = Logger::new(None);
-
-    chain.link_before(logger_before);
-    chain.link_after(logger_after);
+    let chain = Chain::new(index_handler);
 
     println!("Index page is served on http:://localhost:8000/.");
     Iron::new(chain).http("127.0.0.1:8000").unwrap();
